@@ -2,13 +2,15 @@
 mod DonationLeaderboard {
     use crate::interfaces::idonation_leaderboard::IDonationLeaderboard;
 
-    use starknet::{ContractAddress, get_caller_address, get_contract_address};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address,};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry};
 
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 
-    // component!(path: )
+    component!(path: OwnableComponent, storage: ownable, event: ownableEvent );
+    impl OwnableImpl = OwnableComponent::InternalImpl<ContractState>;
+
 
     #[storage]
     struct Storage {
@@ -17,6 +19,9 @@ mod DonationLeaderboard {
         total_donated: u256,
         leaderboard: Map<u256, ContractAddress>,
         badges: Map<ContractAddress, felt252>,
+
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
     }
 
     #[event]
@@ -25,6 +30,9 @@ mod DonationLeaderboard {
         #[flat]
         Donated: Donated,
         BadgeAwarded: BadgeAwarded,
+        FundsWithdrawn: FundsWithdrawn,
+
+        ownableEvent: OwnableComponent::Event,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -37,6 +45,12 @@ mod DonationLeaderboard {
     struct BadgeAwarded {
         recipient: ContractAddress,
         badge: felt252,
+    }
+    
+    #[derive(Drop, starknet::Event)]
+    struct FundsWithdrawn {
+        recipient: ContractAddress,
+        amount: u256,
     }
 
 
@@ -65,11 +79,20 @@ mod DonationLeaderboard {
         }
 
         fn withdraw_funds(ref self: ContractState, recipient: ContractAddress){
-            
+            self.ownable.assert_only_owner();
+
+            let token = IERC20Dispatcher{contract_address: self.accepted_token.read()};
+            let amount = self.total_donated.read();
+
+            assert(amount > 0, 'No funds to withdraw');
+            assert(token.transfer(recipient, amount), 'Withdrawal failed');
+
+            self.total_donated.write(0);
+            self.emit(FundsWithdrawn{recipient, amount})
         }
 
         fn get_donation(self: @ContractState, donator: ContractAddress) -> u256 {
-            5
+            
         }
 
 
