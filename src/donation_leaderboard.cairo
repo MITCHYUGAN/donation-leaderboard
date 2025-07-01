@@ -92,7 +92,7 @@ mod DonationLeaderboard {
         }
 
         fn get_donation(self: @ContractState, donator: ContractAddress) -> u256 {
-            
+            self.donations.entry(donator).read()
         }
 
 
