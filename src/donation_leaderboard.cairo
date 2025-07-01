@@ -1,9 +1,11 @@
 #[starknet::contract]
 mod DonationLeaderboard {
+    
     use crate::interfaces::idonation_leaderboard::IDonationLeaderboard;
 
     use starknet::{ContractAddress, get_caller_address, get_contract_address,};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry};
+    use core::num::traits::Zero;
 
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -19,6 +21,7 @@ mod DonationLeaderboard {
         total_donated: u256,
         leaderboard: Map<u256, ContractAddress>,
         badges: Map<ContractAddress, felt252>,
+        leaderboard_size: u256,
 
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
@@ -97,7 +100,17 @@ mod DonationLeaderboard {
 
 
         fn get_leaderboard(self: @ContractState) -> Array<(ContractAddress, u256)> {
-
+            let mut result = array![];
+            let size = self.leaderboard_size.read();
+            let mut i: u256 = 1;
+            while i <= size && i <= 5 {
+                let user = self.leaderboard.entry(i).read();
+                if user.is_non_zero() {
+                    result.append((user, self.donations.entry(user).read()))
+                }
+                i += 1;
+            };
+            result
         }
 
         fn get_badge(self: @ContractState, user: ContractAddress) -> felt252 {
