@@ -114,7 +114,7 @@ mod DonationLeaderboard {
         }
 
         fn get_badge(self: @ContractState, user: ContractAddress) -> felt252 {
-            5
+            self.badges.entry(user).read()
         }
 
         fn update_leaderboard(ref self: ContractState, donator: ContractAddress, amount: u256){
