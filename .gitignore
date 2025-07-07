@@ -4,3 +4,5 @@ snfoundry_trace/
 coverage/
 profile/
 src/_lib.cairo
+# Local Netlify folder
+.netlify
