@@ -72,9 +72,22 @@ mod DonationLeaderboard {
 
             self.update_leaderboard(donator, new_donation);
 
-            if self.leaderboard.entry(1).read() == donator {
-                self.badges.entry(donator).write('Top Donator');
-                self.emit(BadgeAwarded { recipient: donator, badge: 'Top Donator' });
+            // Clear badges for all leaderboard users except the new top donator
+            let size = self.leaderboard_size.read();
+            let mut i: u256 = 1;
+            let top_donator = self.leaderboard.entry(1).read();
+            while i <= size && i <= 5 {
+                let user = self.leaderboard.entry(i).read();
+                if user.is_non_zero() {
+                    if user == top_donator {
+                        self.badges.entry(user).write('Top Donator');
+                        self.emit(BadgeAwarded { recipient: user, badge: 'Top Donator' });
+                    } else {
+                        self.badges.entry(user).write('Donator');
+                        self.emit(BadgeAwarded { recipient: user, badge: 'Donator' });
+                    }
+                }
+                i += 1;
             }
 
             self.emit(Donated { donator, amount });
@@ -104,7 +117,7 @@ mod DonationLeaderboard {
                     result.append((user, self.donations.entry(user).read()));
                 }
                 i += 1;
-            };
+            }
             result
         }
 
@@ -113,7 +126,6 @@ mod DonationLeaderboard {
         }
 
         fn update_leaderboard(ref self: ContractState, donator: ContractAddress, amount: u256) {
-            // Collect unique donations in an array
             let mut temp_leaderboard: Array<(ContractAddress, u256)> = array![];
             let size = self.leaderboard_size.read();
             let mut i: u256 = 1;
@@ -123,10 +135,9 @@ mod DonationLeaderboard {
                     temp_leaderboard.append((user, self.donations.entry(user).read()));
                 }
                 i += 1;
-            };
+            }
             temp_leaderboard.append((donator, amount));
 
-            // Sort by amount (descending)
             let mut sorted = array![];
             while !temp_leaderboard.is_empty() {
                 let mut max_idx = 0;
@@ -139,7 +150,7 @@ mod DonationLeaderboard {
                         max_idx = j;
                     }
                     j += 1;
-                };
+                }
                 sorted.append(*temp_leaderboard.at(max_idx));
                 let mut new_temp = array![];
                 let mut k = 0;
@@ -148,11 +159,10 @@ mod DonationLeaderboard {
                         new_temp.append(*temp_leaderboard.at(k));
                     }
                     k += 1;
-                };
+                }
                 temp_leaderboard = new_temp;
             }
 
-            // Update leaderboard storage
             self.leaderboard_size.write(0);
             let mut rank: u256 = 1;
             while !sorted.is_empty() && rank <= 5 {
@@ -160,7 +170,7 @@ mod DonationLeaderboard {
                 self.leaderboard.entry(rank).write(user);
                 self.leaderboard_size.write(rank);
                 rank += 1;
-            };
+            }
         }
     }
 }
