@@ -11,7 +11,7 @@ A gamified donation platform on Starknet where users donate STRK tokens, earn ba
 ## Setup
 1. Clone: `git clone <repo-url>`
 2. Contract: `scarb build && scarb test`
-3. Frontend: `cd frontend && npm install && npm run dev`
+3. Frontend: `cd frontend && npm install && npm run dev`. Works with only braavos wallet for now
 4. Deploy: Use `sncast` on Sepolia testnet.
 
 ## Live Link
