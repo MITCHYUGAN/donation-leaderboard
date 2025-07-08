@@ -107,6 +107,10 @@ mod DonationLeaderboard {
             self.donations.entry(donator).read()
         }
 
+        fn get_total_donated(self: @ContractState) -> u256 {
+            self.total_donated.read()
+        }
+
         fn get_leaderboard(self: @ContractState) -> Array<(ContractAddress, u256)> {
             let mut result = array![];
             let size = self.leaderboard_size.read();

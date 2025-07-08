@@ -47,7 +47,6 @@ fn test_donate_and_leaderboard() {
 fn test_donate_and_badge() {
     let (dispatcher, token_dispatcher) = deploy_contract();
 
-    // User1 donates
     start_cheat_caller_address(token_dispatcher.contract_address, USER1);
     token_dispatcher.approve(dispatcher.contract_address, AMOUNT);
     stop_cheat_caller_address(token_dispatcher.contract_address);
@@ -56,7 +55,6 @@ fn test_donate_and_badge() {
     dispatcher.donate(AMOUNT);
     stop_cheat_caller_address(dispatcher.contract_address);
 
-    // User2 donates less
     start_cheat_caller_address(token_dispatcher.contract_address, USER2);
     token_dispatcher.approve(dispatcher.contract_address, AMOUNT2);
     stop_cheat_caller_address(token_dispatcher.contract_address);
@@ -83,7 +81,6 @@ fn test_donate_and_badge() {
 fn test_withdraw_funds_owner() {
     let (dispatcher, token_dispatcher) = deploy_contract();
 
-    // User1 donates to add funds
     start_cheat_caller_address(token_dispatcher.contract_address, USER1);
     token_dispatcher.approve(dispatcher.contract_address, AMOUNT);
     stop_cheat_caller_address(token_dispatcher.contract_address);
@@ -92,13 +89,15 @@ fn test_withdraw_funds_owner() {
     dispatcher.donate(AMOUNT);
     stop_cheat_caller_address(dispatcher.contract_address);
 
-    // Owner withdraws
+    let total_donated_before = dispatcher.get_total_donated();
+    assert(total_donated_before == AMOUNT, 'Incorrect total donated');
+
     start_cheat_caller_address(dispatcher.contract_address, OWNER);
     dispatcher.withdraw_funds(OWNER);
     stop_cheat_caller_address(dispatcher.contract_address);
 
-    let total_donated = dispatcher.get_donation(dispatcher.contract_address);
-    assert(total_donated == 0, 'Total donated not reset');
+    let total_donated_after = dispatcher.get_total_donated();
+    assert(total_donated_after == 0, 'Total donated not reset');
 }
 
 #[test]

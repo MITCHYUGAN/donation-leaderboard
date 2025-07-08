@@ -7,6 +7,7 @@ pub trait IDonationLeaderboard<TContractState> {
     fn get_donation(self: @TContractState, donator: ContractAddress) -> u256;
     fn get_leaderboard(self: @TContractState) -> Array<(ContractAddress, u256)>;
     fn get_badge(self: @TContractState, user: ContractAddress) -> felt252;
+    fn get_total_donated(self: @TContractState) -> u256;
 
     fn update_leaderboard(ref self: TContractState, donator: ContractAddress, amount: u256);
 }
